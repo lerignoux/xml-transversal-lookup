@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block body %}
+  <a action="{{ url_for('reload_config') }}" method=post class=reload-config>Reload config</a>
+  <div class=entries>
+  {% for entry in entries %}
+    <div class="entry">
+      <div class="label">{{ entry }}</div>
+        {% for value in entries[entry]%}
+        <div class="values">{{ value }}</div>
+        {% endfor %}
+    </div>
+  {% else %}
+    <div class="entry">Nothing found</div>
+  {% endfor %}
+  </div>
+{% endblock %}

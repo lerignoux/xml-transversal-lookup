@@ -1,0 +1,14 @@
+<root>
+  <student id='1' name='Chloe'>
+    <values weight='60' height='160'>
+    </values>
+  </student>
+  <student id='2' name='John'>
+    <values weight='68' height='180'>
+    </values>
+  </student>
+  <student id='3' name='luc'>
+    <values weight='75' height='175'>
+    </values>
+  </student>
+</root>
