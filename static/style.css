@@ -1,5 +1,10 @@
 body {
   background: #000000;
+  height: 3000px;
+}
+
+.page {
+  height: 3000px;
 }
 
 .title {
@@ -8,7 +13,7 @@ body {
 }
 
 .entries {
-  height: 100px;
+  height: 3000px;
 }
 
 .entry {
@@ -28,6 +33,7 @@ body {
   float: left;
   color: #dddddd;
   font-size: 1em;
+  padding-right: 10px;
 }
 
 .page { margin: 2em auto; width: 100em; border: 1px solid #ccc;

@@ -23,10 +23,10 @@ def reload_config():
 
 @app.route("/", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
 def lookup():
-    node = request.args.get('node', "student")
-    attribute = request.args.get('attribute', "weight")
+    node = request.args.get('node', "Template")
+    attribute = request.args.get('attribute', "fHealthRate")
     app.logger.info("starting app")
-    app.toolbox.load_file("/app/tests/test.xml")
+    app.toolbox.load_file("/app/tests/9015184194004816.lib.xml")
     return render_template('transversal_lookup.html', entries=app.toolbox.find_nodes_attr(node, attribute))
 
 

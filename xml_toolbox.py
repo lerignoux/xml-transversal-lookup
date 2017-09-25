@@ -60,11 +60,20 @@ class XmlToolbox(object):
             node = node[child]
         return node
 
+    def iter_child(self, node, attr_name):
+        res = []
+        if node.get(attr_name):
+            res = [node.get(attr_name)]
+        for child in node:
+            res += self.iter_child(child, attr_name)
+        return res
+
     def search_children(self, child_name, attr_name):
         result = {}
         children = self.root.findall(child_name)
         for child in children:
-            attr = [node.get(attr_name) for node in child.findall("*[@%s]" % attr_name)]
+            attr = self.iter_child(child, attr_name)
+            # attr = [node.get(attr_name) for node in child.findall(".//[@%s]" % attr_name)]
             result[child.get(self.get_repr(child_name))] = attr
 
         return result
