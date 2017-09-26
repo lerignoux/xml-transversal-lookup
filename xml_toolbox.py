@@ -1,9 +1,10 @@
+import copy
+import hashlib
 import logging
 import json
 import xml.etree.ElementTree as ET
 
-
-log = logging.getLogger(__name__)
+log = logging.getLogger("xml_transversal_lookup")
 
 
 class XmlToolbox(object):
@@ -12,23 +13,34 @@ class XmlToolbox(object):
     """
 
     def __init__(self, config='config.json'):
+        self.root = None
         self.load_config(config)
+        self.load_database("AnimalPersonality")
 
     def load_config(self, config):
         with open('config.json', 'r') as f:
             self.config = json.load(f)
 
-    def load_file(self, filename):
-        with open(filename) as f:
-            log.debug(f.read())
+    def list_databases(self):
+        return [name for name in self.config.get('databases', {}).keys()]
+
+    def load_database(self, db_name):
+        filename = self.config['databases'][db_name]
         self.tree = ET.parse(filename)
         self.root = self.tree.getroot()
+        log.info("root set: %s" % self.root)
 
     def get_repr(self, node_name):
         return self.config.get('helpers', {}).get('nodes_repr', {}).get(node_name, node_name)
 
     def get_node_name(self, node):
         return self.config.get('helpers', {}).get('node_names', {}).get(node, node)
+
+    def get_node__id(self, node_name):
+        for (name, node_id) in self.config.get('helpers', {}).get('node_names', {}).iteritems():
+            if name == node_name:
+                return node_id
+        return node_name
 
     def get_attr_name(self, attr):
         return self.config.get('helpers', {}).get('attr_names', {}).get(attr, attr)
@@ -68,21 +80,57 @@ class XmlToolbox(object):
             res += self.iter_child(child, attr_name)
         return res
 
-    def search_children(self, child_name, attr_name):
-        result = {}
-        children = self.root.findall(child_name)
-        for child in children:
-            attr = self.iter_child(child, attr_name)
-            # attr = [node.get(attr_name) for node in child.findall(".//[@%s]" % attr_name)]
-            result[child.get(self.get_repr(child_name))] = attr
+    def  get_node_id(self, node):
+        hashId = hashlib.md5()
+        hashId.update(repr(node).encode('utf-8'))
+        return hashId.hexdigest()
 
+    def get_nodes_attributes(self, node_name, attributes):
+        log.info("getting attributes %s for %s" % (attributes, node_name))
+        node_name = self.get_node__id(node_name)
+        nodes = self.root.findall(".//%s" % node_name)
+        log.info("nodes found %s " % nodes)
+        result = {}
+        for node in nodes:
+            node_res = copy.deepcopy(node.attrib)
+            node_res["attributes"] = {attr: [] for attr in attributes}
+            for child in node.iter():
+                for attr in attributes:
+                    if child.get(attr):
+                        node_res["attributes"][attr] += [child.get(attr)]
+            result[self.get_node_id(node)] = node_res
         return result
 
-    def find_nodes_attr(self, name, attr):
-        log.info("Searching %s %s" % (name, attr))
+    def find_nodes_attr(self, name, attributes):
+        if not isinstance(attributes, list):
+            attributes = [attributes]
+        log.info("Searching %s %s" % (name, attributes))
         if self.root is None:
             raise Exception("No xml file loaded")
         node_name = self.get_node_name(name)
-        attr_name = self.get_attr_name(attr)
+        attr_name = [self.get_attr_name(attr)for attr in attributes]
         log.info("Searching all %s nodes with the attribute %s" % (node_name, attr_name))
-        return self.search_children(node_name, attr_name)
+        return self.get_nodes_attributes(node_name, attr_name)
+
+    def get_all_attributes(self, node_name=None, rec=True):
+        log.info("getting attributes for %s" % node_name)
+        node_name = self.get_node__id(node_name)
+        nodes = self.root.findall(".//%s" % node_name)
+        log.info("nodes found %s " % nodes)
+        result = set()
+        for node in nodes:
+            result |= set(node.attrib.keys())
+            if rec:
+                for child in node.iter():
+                    result |= set(child.attrib.keys())
+            log.info("getting attrs")
+
+        return list(result)
+
+    def get_all_nodes(self):
+        nodes = set()
+
+        for node in self.root.iter():
+            nodes.add(node.tag)  # indent this by tab, not two spaces as I did here
+
+        return [{"id": node, "name": self.get_node_name(node)} for node in list(nodes)]

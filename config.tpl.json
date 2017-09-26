@@ -3,5 +3,6 @@
     "nodes_repr": {"student": "name"},
     "nodes_names": {},
     "attr_names": {}
-  }
+  },
+  "databases": {}
 }

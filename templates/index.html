@@ -1,0 +1,38 @@
+<!doctype html>
+<html ng-app="TransversalLookupApp">
+<head>
+  <title>Xml transversal lookup</title>
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script>
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
+  <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+</head>
+{% raw %}
+<body ng-controller="LookupController">
+  <div class=menu>
+    <h1 class="title">Xml transversal lookup</h1>
+    <div ng-repeat="db in databases track by $index">
+      <button ng-click="selectDb(db)">{{ db }}</Button>
+    </div>
+    <div class="menu-title" ng-if="databases">Nodes:</div>
+    <select ng-model="selectedNode" ng-change="nodeSelected()">
+      <option ng-repeat="node in nodes | filter:query | orderBy: 'name'" value="{{node.id}}">{{node.name}}</option>
+    </select>
+    <div class="menu-title" ng-if="nodes">Attributes:</div>
+    <select multiple ng-model="selectedAttributes" ng-change="attributeSelected()">
+      <option ng-repeat="attr in attributes" ng-selected="attr">{{attr}}</option>
+    </select>
+    </div>
+    <div class=metanav>
+    </div>
+  </div>
+  <div class=page ng-if=lookups>
+    <table>
+     <tr ng-repeat = "lookup in lookups">
+       <td>{{lookup.Name}}</td>
+       <td>{{ lookup.attributes[selectedAttributes] }}</td>
+     </tr>
+  </table>
+  </div>
+</body>
+{% endraw %}
+</html>
