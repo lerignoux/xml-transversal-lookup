@@ -25,24 +25,25 @@ class XmlToolbox(object):
         return [name for name in self.config.get('databases', {}).keys()]
 
     def load_database(self, db_name):
-        filename = self.config['databases'][db_name]
+        filename = self.config['databases'][db_name]["filename"]
+        self.db_config = self.config['databases'][db_name]
         self.tree = ET.parse(filename)
         self.root = self.tree.getroot()
         log.info("root set: %s" % self.root)
 
     def get_node_name(self, node):
-        node_conf = self.config.get('helpers', {}).get('nodes_names', {}).get(node.tag, {})
-        node_id = node.get(node_conf.get("attribute"))
-        return node_conf.get("values", {}).get(node_id, node_id)
+        nodes_conf = self.db_config.get('nodes_names', {}).get(node.tag, {})
+        node_id = node.get(nodes_conf.get("attribute"))
+        return nodes_conf.get("values", {}).get(node_id, node_id)
 
     def get_node__id(self, node_name):
-        for (name, node_id) in self.config.get('helpers', {}).get('node_names', {}).iteritems():
+        for (name, node_id) in self.db_config.get('node_names', {}).iteritems():
             if name == node_name:
                 return node_id
         return node_name
 
     def get_attr_name(self, attr):
-        return self.config.get('helpers', {}).get('attr_names', {}).get(attr, attr)
+        return self.db_config.get('attributes_names', {}).get(attr, attr)
 
     def find_attr_node(self, attr, ignore_multiple=True):
         """
@@ -130,3 +131,6 @@ class XmlToolbox(object):
             nodes.add(node.tag)  # indent this by tab, not two spaces as I did here
 
         return [{"id": node, "name": node} for node in list(nodes)]
+
+    def get_nodes_groups(self):
+        return self.db_config.get("groups")

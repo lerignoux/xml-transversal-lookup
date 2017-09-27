@@ -50,6 +50,13 @@
                 </md-option>
               </md-select>
             </md-input-container>
+            <md-input-container>
+              <md-select ng-if="data.groups" ng-model="selection.group">
+                <md-option ng-repeat="group in data.groups | orderBy: 'name'" ng-value="group">
+                  {{group.name}}
+                </md-option>
+              </md-select>
+            </md-input-container>
           </div>
         </md-card-content>
       </md-card>
@@ -91,7 +98,7 @@
 
     <!-- exact table from live demo -->
     <md-table-container>
-      <table md-table md-row-select multiple ng-model="selected" md-progress="promise">
+      <table md-table ng-model="selected" md-progress="promise">
         <thead md-head md-order="query.order">
           <tr md-row>
             <th md-column><span>{{selection.node.name}}</span></th>
@@ -99,7 +106,7 @@
           </tr>
         </thead>
         <tbody md-body>
-          <tr md-row md-select-id="name" md-auto-select ng-repeat="node in data.lookups">
+          <tr md-row ng-repeat="node in data.lookups.toArray() | filter:groupFilter">
             <td md-cell>{{node.name}}</td>
             <td md-cell ng-repeat="attr in node.attributes">
             <div ng-if="attr.length == 0"> Missing </div>

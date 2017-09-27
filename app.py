@@ -82,6 +82,10 @@ def attributes():
     return json.dumps(list(toolbox.get_all_attributes(node)))
 
 
+@app.route("/groups", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
+def groups():
+    return json.dumps(toolbox.get_nodes_groups())
+
 if __name__ == "__main__":
     args = parser.parse_args()
 

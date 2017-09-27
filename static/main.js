@@ -56,6 +56,18 @@
         success(function(results) {
           $log.log("nodes: " + results);
           $scope.data.nodes = results;
+          $scope.getNodesGroups();
+        }).
+        error(function(error) {
+          $log.log(error);
+        });
+    };
+
+    $scope.getNodesGroups = function() {
+      $http.get('/groups', {params: {uid: $scope.data.uid}}).
+        success(function(results) {
+          $log.log("groups: " + results);
+          $scope.data.groups = results;
         }).
         error(function(error) {
           $log.log(error);
@@ -84,7 +96,7 @@
           $log.log("lookups : " + results);
           $scope.data.lookups = results;
           $scope.data.headers = []
-          $scope.data.headers.concat([list$scope.selection.node])
+          $scope.data.headers.concat([$scope.selection.node])
           $scope.data.headers.concat($scope.selection.attributes);
           $log.log("headers" + $scope.data.headers);
         }).
@@ -119,6 +131,12 @@
         return (attribute.name.toLowerCase().indexOf(lowercaseQuery) === 0);
       };
     };
+
+    $scope.groupFilter = function (item) {
+        return true
+        return $scope.selection.group.indexOf(item) !== 0;
+    };
+
   }
 
   ]);
