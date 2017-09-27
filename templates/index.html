@@ -1,38 +1,125 @@
 <!doctype html>
 <html ng-app="TransversalLookupApp">
 <head>
+  <!-- Angular Material CSS using GitCDN to load directly from `bower-material/master` -->
+  <link rel="stylesheet" href="https://gitcdn.xyz/repo/angular/bower-material/master/angular-material.css">
+
+  <!-- Data Table style sheet -->
+  <link href="static/md-data-table.min.css" rel="stylesheet" type="text/css"/>
+
+  <!-- Angular Material Dependencies -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
+
+  <!-- Angular Material Javascript using GitCDN to load directly from `bower-material/master` -->
+  <script src="https://gitcdn.xyz/repo/angular/bower-material/master/angular-material.js"></script>
+
+  <!-- module -->
+  <script type="text/javascript" src="static/md-data-table.min.js"></script>
+
   <title>Xml transversal lookup</title>
-  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script>
-  <script src="{{ url_for('static', filename='main.js') }}"></script>
-  <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+    <!-- <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script> -->
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
 </head>
 {% raw %}
 <body ng-controller="LookupController">
+  <md-content>
+
   <div class=menu>
     <h1 class="title">Xml transversal lookup</h1>
-    <div ng-repeat="db in databases track by $index">
-      <button ng-click="selectDb(db)">{{ db }}</Button>
+    <div ng-repeat="db in data.databases track by $index">
+     <md-button ng-click="selectDb(db)" class="md-raised md-primary">{{ db }}</md-button>
     </div>
-    <div class="menu-title" ng-if="databases">Nodes:</div>
-    <select ng-model="selectedNode" ng-change="nodeSelected()">
-      <option ng-repeat="node in nodes | filter:query | orderBy: 'name'" value="{{node.id}}">{{node.name}}</option>
-    </select>
-    <div class="menu-title" ng-if="nodes">Attributes:</div>
-    <select multiple ng-model="selectedAttributes" ng-change="attributeSelected()">
-      <option ng-repeat="attr in attributes" ng-selected="attr">{{attr}}</option>
-    </select>
+
+    <md-card ng-if="selection.database">
+        <md-card-title>
+          <md-card-title-text>
+            <span class="md-headline">Node Selection</span>
+            <span class="md-subhead">Select the Nodes you wish to compare.</span>
+          </md-card-title-text>
+        </md-card-title>
+            <md-input-container>
+              <label>Node</label>
+              <md-select ng-model="selection.node" ng-change="getAttrs()">
+                <md-option ng-repeat="node in data.nodes | orderBy: 'name' track by node.id" ng-value="node">
+                  {{node.name}}
+                </md-option>
+              </md-select>
+            </md-input-container>
+          </div>
+        </md-card-content>
+      </md-card>
+
+      <md-card ng-if="selection.node">
+        <div class="menu-title">Attributes:</div>
+        <md-chips ng-model="selection.attributes"
+                  md-autocomplete-snap
+                  md-transform-chip="transformChip($chip)"
+                  md-require-match="true">
+          <md-autocomplete
+              md-selected-item="selectedItem"
+              md-search-text="searchAttribute"
+              md-items="attr in attrSearch(searchAttribute)"
+              md-item-text="attr.name"
+              placeholder="Search for attributes">
+            <span md-highlight-text="searchAttribute">{{attr.name}}</span`>
+          </md-autocomplete>
+          <md-chip-template>
+            <span>
+              <strong>{{$chip.name}}</strong>
+            </span>
+          </md-chip-template>
+        </md-chips>
+       <md-button ng-click="getLookup()" class="md-raised md-primary">Compare</md-button>
+     </md-card>
     </div>
     <div class=metanav>
     </div>
   </div>
-  <div class=page ng-if=lookups>
-    <table>
-     <tr ng-repeat = "lookup in lookups">
-       <td>{{lookup.Name}}</td>
-       <td>{{ lookup.attributes[selectedAttributes] }}</td>
-     </tr>
-  </table>
-  </div>
+  <md-card ng-if="data.lookups">
+
+
+    <md-toolbar class="md-table-toolbar md-default">
+      <div class="md-toolbar-tools">
+        <span>Results</span>
+      </div>
+    </md-toolbar>
+
+    <!-- exact table from live demo -->
+    <md-table-container>
+      <table md-table md-row-select multiple ng-model="selected" md-progress="promise">
+        <thead md-head md-order="query.order">
+          <tr md-row>
+            <th md-column><span>{{selection.node.name}}</span></th>
+            <th md-column ng-repeat="attr in selection.attributes"><span>{{attr.name}}</span></th>
+          </tr>
+        </thead>
+        <tbody md-body>
+          <tr md-row md-select-id="name" md-auto-select ng-repeat="node in data.lookups">
+            <td md-cell>{{node.name}}</td>
+            <td md-cell ng-repeat="attr in node.attributes">
+            <div ng-if="attr.length == 0"> Missing </div>
+            <div ng-if="attr.length == 1"> {{attr[0]}} </div>
+            <div ng-if="attr.length > 1">
+              <select>
+                <option ng-repeat="case in attr">{{case}}</option>
+              </select>
+            </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </md-table-container>
+
+    <md-table-pagination md-limit="query.limit" md-limit-options="[5, 10, 15]" md-page="query.page" md-total="{{desserts.count}}" md-on-paginate="getDesserts" md-page-select></md-table-pagination>
+
+
+  </md-card>
+</md-content>
 </body>
 {% endraw %}
 </html>

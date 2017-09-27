@@ -2,19 +2,33 @@
 
   'use strict';
 
-  angular.module('TransversalLookupApp', [])
+  angular.module('TransversalLookupApp', ['ngMaterial', 'md.data.table'])
 
   .controller('LookupController', ['$scope', '$log', '$http',
     function($scope, $log, $http) {
       $log.log("controller init");
+      $scope.data = {
+        "uid": null,
+        "databases": null,
+        "nodes": null,
+        "attributes": null,
+        "lookups": null,
+        "headers": [],
+      };
+
+      $scope.selection = {
+        "database": null,
+        "node": null,
+        "attributes": []
+      };
 
       $http.post('/login').
         success(function(results) {
           $log.log(results);
-          $scope.uid = results["uid"];
-          $http.get('/databases', {params: {uid: $scope.uid}}).
+          $scope.data.uid = results["uid"];
+          $http.get('/databases', {params: {uid: $scope.data.uid}}).
             success(function(results) {
-              $scope.databases = results;
+              $scope.data.databases = results;
               $log.log(results);
             }).
             error(function(error) {
@@ -26,60 +40,85 @@
         });
 
     $scope.selectDb = function(db) {
-      $log.log("selected db:" + db);
-      $http.post('/databases', {uid: $scope.uid, database: db}).
+      $scope.selection.database = db;
+      $http.post('/databases', {uid: $scope.data.uid, database: $scope.selection.database}).
         success(function(results) {
           $log.log(results);
-          $scope.loadNodes();
+          $scope.getNodes();
         }).
         error(function(error) {
           $log.log(error);
         });
     };
 
-    $scope.loadNodes = function() {
-      $http.get('/nodes', {params: {uid: $scope.uid}}).
+    $scope.getNodes = function() {
+      $http.get('/nodes', {params: {uid: $scope.data.uid}}).
         success(function(results) {
-          $log.log(results);
-          $scope.nodes = results;
-          $log.log(results)
+          $log.log("nodes: " + results);
+          $scope.data.nodes = results;
         }).
         error(function(error) {
           $log.log(error);
         });
     };
 
-    $scope.nodeSelected = function() {
-      $scope.loadAttrs()
-    };
-
-    $scope.loadAttrs = function() {
-      $http.get('/attributes', {params: {uid: $scope.uid, node_name: $scope.selectedNode}}).
+    $scope.getAttrs = function() {
+      $log.log("getting");
+      $http.get('/attributes', {params: {uid: $scope.data.uid, node: $scope.selection.node.id}}).
         success(function(results) {
-          $log.log(results);
-          $scope.attributes = results;
-          $scope.selectedAttributes = [];
+          $log.log("attributes: " + results);
+          $scope.data.attributes = results;
+        }).
+        error(function(error) {
+          $log.log(error);
+        });
+    }
+
+    $scope.getLookup = function() {
+      var attributes_names = [];
+      for (var i= 0; i<$scope.selection.attributes.length; i++) {
+        attributes_names.push($scope.selection.attributes[i].name);
+      };
+      $http.get('/lookups', {params: {uid: $scope.data.uid, node: $scope.selection.node.id, attributes: attributes_names}}).
+        success(function(results) {
+          $log.log("lookups : " + results);
+          $scope.data.lookups = results;
+          $scope.data.headers = []
+          $scope.data.headers.concat([list$scope.selection.node])
+          $scope.data.headers.concat($scope.selection.attributes);
+          $log.log("headers" + $scope.data.headers);
         }).
         error(function(error) {
           $log.log(error);
         });
     };
 
-    $scope.attributeSelected = function() {
-      $scope.lookup();
+    $scope.transformChip = function(chip) {
+      $log.log("transform chip" + chip)
+      // If it is an object, it's already a known chip
+      if (angular.isObject(chip)) {
+        return chip;
+      }
     };
-
-    $scope.lookup = function() {
-      $http.get('/lookups', {params: {uid: $scope.uid, node_name: $scope.selectedNode, attributes: $scope.selectedAttributes}}).
-        success(function(results) {
-          $log.log(results);
-          $scope.lookups = results;
-        }).
-        error(function(error) {
-          $log.log(error);
-        });
+    /**
+     * Search for vegetables.
+     */
+    $scope.attrSearch = function (query) {
+      $log.log("searching for "+ query)
+      $log.log($scope.data.attributes);
+        var results = query ? $scope.data.attributes.filter($scope.createFilterFor(query)) : [];
+      return results;
     };
+    /**
+     * Create filter function for a query string
+     */
+    $scope.createFilterFor = function(query) {
+      var lowercaseQuery = angular.lowercase(query);
 
+      return function filterFn(attribute) {
+        return (attribute.name.toLowerCase().indexOf(lowercaseQuery) === 0);
+      };
+    };
   }
 
   ]);

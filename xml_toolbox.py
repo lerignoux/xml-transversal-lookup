@@ -30,11 +30,10 @@ class XmlToolbox(object):
         self.root = self.tree.getroot()
         log.info("root set: %s" % self.root)
 
-    def get_repr(self, node_name):
-        return self.config.get('helpers', {}).get('nodes_repr', {}).get(node_name, node_name)
-
     def get_node_name(self, node):
-        return self.config.get('helpers', {}).get('node_names', {}).get(node, node)
+        node_conf = self.config.get('helpers', {}).get('nodes_names', {}).get(node.tag, {})
+        node_id = node.get(node_conf.get("attribute"))
+        return node_conf.get("values", {}).get(node_id, node_id)
 
     def get_node__id(self, node_name):
         for (name, node_id) in self.config.get('helpers', {}).get('node_names', {}).iteritems():
@@ -80,19 +79,18 @@ class XmlToolbox(object):
             res += self.iter_child(child, attr_name)
         return res
 
-    def  get_node_id(self, node):
+    def get_node_id(self, node):
         hashId = hashlib.md5()
         hashId.update(repr(node).encode('utf-8'))
         return hashId.hexdigest()
 
-    def get_nodes_attributes(self, node_name, attributes):
-        log.info("getting attributes %s for %s" % (attributes, node_name))
-        node_name = self.get_node__id(node_name)
-        nodes = self.root.findall(".//%s" % node_name)
-        log.info("nodes found %s " % nodes)
+    def get_nodes_attributes(self, node_type, attributes):
+        log.info("getting attributes %s for %s" % (attributes, node_type))
+        nodes = self.root.findall(".//%s" % node_type)
         result = {}
         for node in nodes:
             node_res = copy.deepcopy(node.attrib)
+            node_res["name"] = self.get_node_name(node)
             node_res["attributes"] = {attr: [] for attr in attributes}
             for child in node.iter():
                 for attr in attributes:
@@ -101,31 +99,29 @@ class XmlToolbox(object):
             result[self.get_node_id(node)] = node_res
         return result
 
-    def find_nodes_attr(self, name, attributes):
+    def find_nodes_attr(self, node_type, attributes):
         if not isinstance(attributes, list):
             attributes = [attributes]
-        log.info("Searching %s %s" % (name, attributes))
+        log.info("Searching %s %s" % (node_type, attributes))
         if self.root is None:
             raise Exception("No xml file loaded")
-        node_name = self.get_node_name(name)
-        attr_name = [self.get_attr_name(attr)for attr in attributes]
-        log.info("Searching all %s nodes with the attribute %s" % (node_name, attr_name))
-        return self.get_nodes_attributes(node_name, attr_name)
+        attr_name = [self.get_attr_name(attr) for attr in attributes]
+        log.info("Searching all %s nodes with the attribute %s" % (node_type, attr_name))
+        return self.get_nodes_attributes(node_type, attr_name)
 
-    def get_all_attributes(self, node_name=None, rec=True):
-        log.info("getting attributes for %s" % node_name)
-        node_name = self.get_node__id(node_name)
-        nodes = self.root.findall(".//%s" % node_name)
+    def get_all_attributes(self, node_id=None, rec=True):
+        log.info("getting attributes for %s" % node_id)
+        nodes = self.root.findall(".//%s" % node_id)
         log.info("nodes found %s " % nodes)
-        result = set()
+        attributes = set()
         for node in nodes:
-            result |= set(node.attrib.keys())
+            attributes |= set(node.attrib.keys())
             if rec:
                 for child in node.iter():
-                    result |= set(child.attrib.keys())
+                    attributes |= set(child.attrib.keys())
             log.info("getting attrs")
 
-        return list(result)
+        return [{"name": attr} for attr in attributes]
 
     def get_all_nodes(self):
         nodes = set()
@@ -133,4 +129,4 @@ class XmlToolbox(object):
         for node in self.root.iter():
             nodes.add(node.tag)  # indent this by tab, not two spaces as I did here
 
-        return [{"id": node, "name": self.get_node_name(node)} for node in list(nodes)]
+        return [{"id": node, "name": node} for node in list(nodes)]

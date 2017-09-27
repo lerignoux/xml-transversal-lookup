@@ -1,15 +1,11 @@
 body {
-  background: #000000;
-  height: 3000px;
   color: #dddddd;
 }
 
-.page {
-  height: 3000px;
-}
-
-.menu {}
-
+.menu {
+  md-card: {
+    width: 40%;
+  }
 }
 
 .menu-title {

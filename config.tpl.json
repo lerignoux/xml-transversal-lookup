@@ -1,8 +1,13 @@
 {
   "helpers": {
-    "nodes_repr": {"student": "name"},
-    "nodes_names": {},
+    "nodes_names": {
+      "Template": {
+        "attribute": "Name",
+        "values": {
+        }
+      }
+    },
     "attr_names": {}
   },
-  "databases": {}
+  "databases": {"AnimalPersonality": "/app/tests/9015184194004816.lib.xml"}
 }
