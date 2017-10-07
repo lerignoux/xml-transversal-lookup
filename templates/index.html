@@ -16,8 +16,14 @@
   <!-- Angular Material Javascript using GitCDN to load directly from `bower-material/master` -->
   <script src="https://gitcdn.xyz/repo/angular/bower-material/master/angular-material.js"></script>
 
-  <!-- module -->
+  <!-- data table module -->
   <script type="text/javascript" src="static/md-data-table.min.js"></script>
+
+  <!-- graph js module -->
+  <!-- <script type="text/javascript" src="node_modules/angular/angular.min.js"></script>  -->
+  <script type="text/javascript" src="static/Chart.min.js"></script>
+  <script type="text/javascript" src="static/angular-chart.min.js"></script>
+
 
   <title>Xml transversal lookup</title>
     <!-- <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script> -->
@@ -126,7 +132,12 @@
 
 
   </md-card>
+  <md-card ng-if="data.lookups">
+    <canvas class="chart chart-bar" chart-data="data" chart-labels="labels" chart-series="series"></canvas>
+  </md-card>
 </md-content>
+
+
 </body>
 {% endraw %}
 </html>
