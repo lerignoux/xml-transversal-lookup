@@ -28,9 +28,6 @@
         [65, 59, 80, 81, 56, 55, 40],
         [28, 48, 40, 19, 86, 27, 90]
       ];
-      $scope.onClick = function (points, evt) {
-        console.log(points, evt);
-      };
 
       $http.post('/login').
         success(function(results) {
@@ -49,8 +46,7 @@
           $log.log(error);
         });
 
-    $scope.selectDb = function(db) {
-      $scope.selection.database = db;
+    $scope.selectDb = function() {
       $http.post('/databases', {uid: $scope.data.uid, database: $scope.selection.database}).
         success(function(results) {
           $log.log(results);
@@ -104,11 +100,40 @@
       $http.get('/lookups', {params: {uid: $scope.data.uid, node: $scope.selection.node.id, attributes: attributes_names}}).
         success(function(results) {
           $log.log("lookups : " + results);
+          $log.log(results);
           $scope.data.lookups = results;
+
+          // Setup data tabel headers
           $scope.data.headers = []
           $scope.data.headers.concat([$scope.selection.node])
           $scope.data.headers.concat($scope.selection.attributes);
           $log.log("headers" + $scope.data.headers);
+
+          // setup graph data
+          $scope.data.chartSeries = $scope.selection.attributes;
+          $scope.data.chartLabels = [];
+          $scope.data.chartData = [];
+          angular.forEach(results, function(value, key) {
+            $scope.data.chartLabels.push(value.name.split(".").slice(-1)[0])
+            for (var i= 0; i<$scope.data.chartSeries.length; i++) {
+              var attr = $scope.data.chartSeries[i].name;
+              if (angular.isArray(value.attributes[attr])){
+                if (value.attributes[attr].length >= 1) {
+                  $log.log("multiple values, the first one will be used ");
+                  $scope.data.chartData.push(value.attributes[attr][0]);
+                }
+                else {
+                  $scope.data.chartData.push(0);
+                }
+              }
+              else {
+                $scope.data.chartData.push(value.attributes[attr]);
+              }
+            }
+          })
+          $log.log($scope.data.chartSeries);
+          $log.log($scope.data.chartLabels);
+          $log.log($scope.data.chartData);
         }).
         error(function(error) {
           $log.log(error);
@@ -123,7 +148,7 @@
       }
     };
     /**
-     * Search for vegetables.
+     * Search for entries.
      */
     $scope.attrSearch = function (query) {
       $log.log("searching for "+ query)
@@ -138,12 +163,12 @@
       var lowercaseQuery = angular.lowercase(query);
 
       return function filterFn(attribute) {
-        return (attribute.name.toLowerCase().indexOf(lowercaseQuery) === 0);
+        return (attribute.name.toLowerCase().indexOf(lowercaseQuery) > 0);
       };
     };
 
     $scope.groupFilter = function (item) {
-        return true
+        return true;
         return $scope.selection.group.indexOf(item) !== 0;
     };
 
