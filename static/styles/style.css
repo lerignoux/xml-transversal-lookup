@@ -1,0 +1,39 @@
+html {
+  background-color: #ddd;
+}
+
+body {
+  background-color: #ddd;
+  color: #dddddd;
+  max-width: 80%;
+  margin-left: 10%;
+}
+
+md-toolbar.title {
+  display: flex;
+  flex-direction: row;
+}
+
+.title-icon {
+  width: 200px;
+}
+
+.title h2 {
+  width: 100%;
+  font-size: 0.9em;
+  padding-top: 0.2em;
+}
+
+.menu {
+  display: flex;
+  flex-direction: row;
+}
+
+md-content {
+  background-color: #ddd;
+}
+
+canvas {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}

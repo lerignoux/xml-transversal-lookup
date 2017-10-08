@@ -28,23 +28,21 @@
   <title>Xml transversal lookup</title>
     <!-- <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script> -->
     <script src="{{ url_for('static', filename='main.js') }}"></script>
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/style.css') }}">
 
 </head>
 {% raw %}
 <body ng-controller="LookupController">
-<md-content>
+  <md-content>
+    <md-toolbar class="title">
+      <md-icon class="title-icon" md-svg-src="static/images/logo.svg"></md-icon>
+      <h2 md-truncate>Xml transversal lookup</h2>
+    </md-toolbar>
+  </md-content>
 
-  <div class=menu>
-    <md-card>
-      <md-card-title>
-        <md-card-title-text>
-          <span class="md-headline">Xml transversal lookup</span>
-        </md-card-title-text>
-      </md-card-title>
-
-      <div flex>
-      <md-input-container>
+  <md-content>
+    <md-card class="menu">
+      <md-input-container flex=2>
         <label>Database</label>
         <md-select ng-model="selection.database" ng-change="selectDb()">
           <md-option ng-repeat="db in data.databases track by $index" ng-value="db">
@@ -53,7 +51,7 @@
         </md-select>
       </md-input-container>
 
-      <md-input-container>
+      <md-input-container flex=2>
         <label>Node</label>
         <md-select ng-model="selection.node" ng-change="getAttrs()">
           <md-option ng-repeat="node in data.nodes | orderBy: 'name' track by node.id" ng-value="node" ng-selected="{{ node.id === selection.node.id ? 'true' : 'false' }}">
@@ -62,7 +60,7 @@
         </md-select>
       </md-input-container>
 
-      <md-input-container>
+      <md-input-container flex=2>
         <label>Predefined groups</label>
         <md-select ng-if="data.groups" ng-model="selection.group">
           <md-option ng-repeat="(name, values) in data.groups" ng-value="name">
@@ -76,7 +74,7 @@
         <md-icon md-svg-src="static/images/ic_filter_list_black_24px.svg"></md-icon>
       </md-button>
 
-      <md-input-container>
+      <md-input-container flex>
         <label>Attributes:</label>
         <md-chips ng-model="selection.attributes"
                   md-autocomplete-snap
@@ -119,49 +117,44 @@
       </md-card-content>
     </md-card>
 
-  </div>
+    <md-card ng-if="selection.attributes.length > 0">
+      <!-- Data table -->
+      <md-table-container>
+        <table md-table ng-model="selected" md-progress="promise">
+          <thead md-head md-order="query.order">
+            <tr md-row>
+              <th md-column><span>{{selection.node.name}}</span></th>
+              <th md-column ng-repeat="attr in selection.attributes"><span>{{attr.name}}</span></th>
+            </tr>
+          </thead>
+          <tbody md-body>
+            <tr md-row ng-repeat="node in data.lookups | filter:nodesFilter">
+              <td md-cell>
+                <md-button style="width:300px;">
+                  <md-tooltip md-direction="bottom">{{node.name}}</md-tooltip>{{node.name.split(".").slice(-1)[0]}}
+                </md-button>
+              </td>
+              <td md-cell ng-repeat="attr in node.attributes">
+              <div ng-if="attr.length == 0"> Missing </div>
+              <div ng-if="attr.length == 1"> {{attr[0]}} </div>
+              <div ng-if="attr.length > 1">
+                <select>
+                  <option ng-repeat="case in attr track by $index">{{case}}</option>
+                </select>
+              </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+      <md-table-pagination md-limit="query.limit" md-limit-options="[5, 10, 15]" md-page="query.page" md-total="{{desserts.count}}" md-on-paginate="getDesserts" md-page-select></md-table-pagination>
+    </md-card>
 
-  <md-card ng-if="selection.attributes.length > 0">
-    <!-- Data table -->
-    <md-table-container>
-      <table md-table ng-model="selected" md-progress="promise">
-        <thead md-head md-order="query.order">
-          <tr md-row>
-            <th md-column><span>{{selection.node.name}}</span></th>
-            <th md-column ng-repeat="attr in selection.attributes"><span>{{attr.name}}</span></th>
-          </tr>
-        </thead>
-        <tbody md-body>
-          <tr md-row ng-repeat="node in data.lookups | filter:nodesFilter">
-            <td md-cell>
-              <md-button>
-                <md-tooltip md-direction="bottom">{{node.name}}</md-tooltip>{{node.name.split(".").slice(-1)[0]}}
-              </md-button>
-            </td>
-            <td md-cell ng-repeat="attr in node.attributes">
-            <div ng-if="attr.length == 0"> Missing </div>
-            <div ng-if="attr.length == 1"> {{attr[0]}} </div>
-            <div ng-if="attr.length > 1">
-              <select>
-                <option ng-repeat="case in attr track by $index">{{case}}</option>
-              </select>
-            </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </md-table-container>
+    <md-card ng-if="selection.attributes.length > 0">
+      <canvas class="chart chart-bar" chart-data="data.chartData" chart-labels="data.chartLabels" chart-dataset-override="data.datasetOverride"></canvas>
+    </md-card>
 
-    <md-table-pagination md-limit="query.limit" md-limit-options="[5, 10, 15]" md-page="query.page" md-total="{{desserts.count}}" md-on-paginate="getDesserts" md-page-select></md-table-pagination>
-
-  </md-card>
-
-  <md-card ng-if="selection.attributes.length > 0">
-    <canvas class="chart chart-bar" chart-data="data.chartData" chart-labels="data.chartLabels" chart-dataset-override="data.datasetOverride"></canvas>
-  </md-card>
-
-</md-content>
-
+  </md-content>
 </body>
 {% endraw %}
 </html>

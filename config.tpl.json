@@ -1,13 +1,22 @@
 {
-  "helpers": {
-    "nodes_names": {
-      "Template": {
-        "attribute": "Name",
-        "values": {
+  "default_db": "DB_Name",
+  "databases": {
+    "<DB_Name>": {
+      "filename": "<Xml filename>",
+      "nodes": {
+        "type": "NodeType",
+        "name": "Name",
+        "groups": {
+          "Group1": [
+            "Node.name.1",
+            "Node.name.2",
+          ],
+          "Group2": [
+            "Node.name.3",
+            "Node.name.4",
+          ]
         }
       }
-    },
-    "attr_names": {}
-  },
-  "databases": {"AnimalPersonality": "/app/tests/9015184194004816.lib.xml"}
+    }
+  }
 }
