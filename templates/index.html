@@ -56,11 +56,25 @@
       <md-input-container>
         <label>Node</label>
         <md-select ng-model="selection.node" ng-change="getAttrs()">
-          <md-option ng-repeat="node in data.nodes | orderBy: 'name' track by node.id" ng-value="node">
+          <md-option ng-repeat="node in data.nodes | orderBy: 'name' track by node.id" ng-value="node" ng-selected="{{ node.id === selection.node.id ? 'true' : 'false' }}">
             {{node.name}}
           </md-option>
         </md-select>
       </md-input-container>
+
+      <md-input-container>
+        <label>Predefined groups</label>
+        <md-select ng-if="data.groups" ng-model="selection.group">
+          <md-option ng-repeat="(name, values) in data.groups" ng-value="name">
+            {{name}}
+          </md-option>
+        </md-select>
+      </md-input-container>
+
+      <md-button class="md-fab md-primary" aria-label="nodes filters" ng-click="toggleNodesFilter()" >
+        <md-tooltip md-direction="bottom">nodes filters</md-tooltip>
+        <md-icon md-svg-src="static/images/ic_filter_list_black_24px.svg"></md-icon>
+      </md-button>
 
       <md-input-container>
         <label>Attributes:</label>
@@ -84,26 +98,30 @@
         </md-chips>
       </md-input-container>
 
-      <md-button ng-if="selection.attributes.length > 0" ng-click="getLookup()" class="md-raised md-primary">Compare</md-button>
+      <md-button class="md-fab md-primary" aria-label="Attributes filters" ng-disabled="true">
+        <md-icon md-svg-src="static/images/ic_filter_list_black_24px.svg"></md-icon>
+      </md-button>
 
     </md-card>
 
-    <md-card ng-if="filter">
+    <md-card ng-if="nodesFiltered">
       <md-card-content>
+
         <md-input-container>
-          <md-select ng-if="data.groups" ng-model="selection.group">
-            <md-option ng-repeat="group in data.groups | orderBy: 'name'" ng-value="group">
-              {{group.name}}
-            </md-option>
-          </md-select>
+          <div ng-repeat="name in data.names | orderBy: name">
+          <md-checkbox ng-checked="nodeSelected(name)"
+                       ng-click="toggleNode(name)">
+            <span>{{name.split(".").slice(-1)[0]}}</span>
+          </md-checkbox>
+        </div>
         </md-input-container>
+
       </md-card-content>
     </md-card>
 
   </div>
 
-  <md-card ng-if="data.lookups">
-
+  <md-card ng-if="selection.attributes.length > 0">
     <!-- Data table -->
     <md-table-container>
       <table md-table ng-model="selected" md-progress="promise">
@@ -114,7 +132,7 @@
           </tr>
         </thead>
         <tbody md-body>
-          <tr md-row ng-repeat="(id, node) in data.lookups">
+          <tr md-row ng-repeat="node in data.lookups | filter:nodesFilter">
             <td md-cell>
               <md-button>
                 <md-tooltip md-direction="bottom">{{node.name}}</md-tooltip>{{node.name.split(".").slice(-1)[0]}}
@@ -125,7 +143,7 @@
             <div ng-if="attr.length == 1"> {{attr[0]}} </div>
             <div ng-if="attr.length > 1">
               <select>
-                <option ng-repeat="case in attr">{{case}}</option>
+                <option ng-repeat="case in attr track by $index">{{case}}</option>
               </select>
             </div>
             </td>
@@ -138,8 +156,8 @@
 
   </md-card>
 
-  <md-card ng-if="data.lookups">
-    <canvas class="chart chart-bar" chart-data="data.chartData" chart-labels="data.chartLabels" chart-series="data.chartSeries"></canvas>
+  <md-card ng-if="selection.attributes.length > 0">
+    <canvas class="chart chart-bar" chart-data="data.chartData" chart-labels="data.chartLabels" chart-dataset-override="data.datasetOverride"></canvas>
   </md-card>
 
 </md-content>

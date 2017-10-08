@@ -52,7 +52,11 @@ def reload_config():
 
 @app.route('/databases', methods=['GET'])
 def get_databases():
-    return json.dumps(toolbox.list_databases())
+    result = {
+        "default": toolbox.get_default_database(),
+        "all": toolbox.list_databases()
+    }
+    return json.dumps(result)
 
 
 @app.route('/databases', methods=['POST'])
@@ -68,12 +72,28 @@ def post_database():
 def lookup():
     node = request.args.get('node')
     attributes = request.args.getlist('attributes')
-    return json.dumps(toolbox.find_nodes_attr(node, attributes))
+    return json.dumps(toolbox.find_nodes_attr(attributes, node))
 
 
 @app.route("/nodes", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
 def nodes():
-    return json.dumps(toolbox.get_all_nodes())
+    result = {
+        "default": toolbox.get_default_node_type(),
+        "all": toolbox.get_all_nodes_types()
+    }
+    return json.dumps(result)
+
+
+@app.route("/nodes/names", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
+def nodes_names():
+    node_type = request.args.get('node')
+    return json.dumps(toolbox.get_nodes_names(node_type))
+
+
+@app.route("/nodes/groups", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
+def nodes_groups():
+    node_type = request.args.get('node')
+    return json.dumps(toolbox.get_nodes_groups(node_type))
 
 
 @app.route("/attributes", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
@@ -81,10 +101,6 @@ def attributes():
     node = request.args.get('node')
     return json.dumps(list(toolbox.get_all_attributes(node)))
 
-
-@app.route("/groups", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
-def groups():
-    return json.dumps(toolbox.get_nodes_groups())
 
 if __name__ == "__main__":
     args = parser.parse_args()

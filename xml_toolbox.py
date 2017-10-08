@@ -15,11 +15,14 @@ class XmlToolbox(object):
     def __init__(self, config='config.json'):
         self.root = None
         self.load_config(config)
-        self.load_database("AnimalPersonality")
+        self.load_database(self.config['default_db'])
 
     def load_config(self, config):
         with open('config.json', 'r') as f:
             self.config = json.load(f)
+
+    def get_default_database(self):
+        return self.config['default_db']
 
     def list_databases(self):
         return [name for name in self.config.get('databases', {}).keys()]
@@ -32,18 +35,8 @@ class XmlToolbox(object):
         log.info("root set: %s" % self.root)
 
     def get_node_name(self, node):
-        nodes_conf = self.db_config.get('nodes_names', {}).get(node.tag, {})
-        node_id = node.get(nodes_conf.get("attribute"))
-        return nodes_conf.get("values", {}).get(node_id, node_id)
-
-    def get_node__id(self, node_name):
-        for (name, node_id) in self.db_config.get('node_names', {}).iteritems():
-            if name == node_name:
-                return node_id
-        return node_name
-
-    def get_attr_name(self, attr):
-        return self.db_config.get('attributes_names', {}).get(attr, attr)
+        name_field = self.db_config.get('nodes', {})['name']
+        return node.get(name_field)
 
     def find_attr_node(self, attr, ignore_multiple=True):
         """
@@ -85,7 +78,28 @@ class XmlToolbox(object):
         hashId.update(repr(node).encode('utf-8'))
         return hashId.hexdigest()
 
-    def get_nodes_attributes(self, node_type, attributes):
+    def get_nodes_names(self, node_type=None):
+        """
+        Return all the nodes names of this type
+        """
+        if node_type is None:
+            node_type = self.db_config['nodes']['type']
+        log.info("getting all nodes names")
+        names = []
+        nodes = self.root.findall(".//%s" % node_type)
+        log.info(nodes)
+        for node in nodes:
+            log.info(node)
+            names.append(self.get_node_name(node))
+        return names
+
+    def get_nodes_attributes(self, attributes, node_type=None):
+        """
+        List all the attributes recursively on a node type
+        default configured node type is used if not provided
+        """
+        if node_type is None:
+            node_type = self.db_config['nodes']['type']
         log.info("getting attributes %s for %s" % (attributes, node_type))
         nodes = self.root.findall(".//%s" % node_type)
         result = {}
@@ -100,15 +114,21 @@ class XmlToolbox(object):
             result[self.get_node_id(node)] = node_res
         return result
 
-    def find_nodes_attr(self, node_type, attributes):
+    def find_nodes_attr(self, attributes, node_type):
+        """
+        List all the attributes for a node type,
+        default node type configured is used if not provided
+        """
+        if node_type is None:
+            node_type = self.db_config['nodes']['type']
         if not isinstance(attributes, list):
             attributes = [attributes]
-        log.info("Searching %s %s" % (node_type, attributes))
+
+        log.info("Searching %s for %s values" % (node_type, attributes))
         if self.root is None:
             raise Exception("No xml file loaded")
-        attr_name = [self.get_attr_name(attr) for attr in attributes]
-        log.info("Searching all %s nodes with the attribute %s" % (node_type, attr_name))
-        return self.get_nodes_attributes(node_type, attr_name)
+        log.info("Searching all %s nodes with the attribute %s" % (node_type, attributes))
+        return self.get_nodes_attributes(attributes, node_type)
 
     def get_all_attributes(self, node_id=None, rec=True):
         log.info("getting attributes for %s" % node_id)
@@ -124,7 +144,10 @@ class XmlToolbox(object):
 
         return [{"name": attr} for attr in attributes]
 
-    def get_all_nodes(self):
+    def get_default_node_type(self):
+        return {'id': self.db_config['nodes']['type'], 'name': self.db_config['nodes']['type']}
+
+    def get_all_nodes_types(self):
         nodes = set()
 
         for node in self.root.iter():
@@ -132,5 +155,5 @@ class XmlToolbox(object):
 
         return [{"id": node, "name": node} for node in list(nodes)]
 
-    def get_nodes_groups(self):
-        return self.db_config.get("groups")
+    def get_nodes_groups(self, node_type):
+        return self.db_config.get("nodes", {}).get("groups", {})
