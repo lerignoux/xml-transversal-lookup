@@ -16,6 +16,18 @@
             "Node.name.4",
           ]
         }
+      },
+      "attributes": {
+        "groups": {
+          "Group1": [
+            "Node.name.1",
+            "Node.name.2"
+          ],
+          "Group2": [
+            "Node.name.3",
+            "Node.name.4"
+          ]
+        }
       }
     }
   }

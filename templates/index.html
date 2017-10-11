@@ -52,18 +52,19 @@
       </md-input-container>
 
       <md-input-container flex=2>
-        <label>Node</label>
-        <md-select ng-model="selection.node" ng-change="getAttrs()">
-          <md-option ng-repeat="node in data.nodes | orderBy: 'name' track by node.id" ng-value="node" ng-selected="{{ node.id === selection.node.id ? 'true' : 'false' }}">
-            {{node.name}}
+        <label>Node type</label>
+        <md-select ng-model="selection.node_type" ng-change="getAttrs()">
+          <md-option ng-repeat="type in data.node_types | orderBy: 'name' track by type.id" ng-value="type" ng-selected="{{ type.id === selection.node_type.id ? 'true' : 'false' }}">
+            {{type.name}}
           </md-option>
         </md-select>
       </md-input-container>
 
-      <md-input-container flex=2>
-        <label>Predefined groups</label>
-        <md-select ng-if="data.groups" ng-model="selection.group">
-          <md-option ng-repeat="(name, values) in data.groups" ng-value="name">
+
+      <md-input-container>
+        <label>Nodes groups</label>
+        <md-select ng-if="data.nodesGroups" ng-model="selection.nodesGroup">
+          <md-option ng-repeat="(name, values) in data.nodesGroups" ng-value="name">
             {{name}}
           </md-option>
         </md-select>
@@ -74,29 +75,18 @@
         <md-icon md-svg-src="static/images/ic_filter_list_black_24px.svg"></md-icon>
       </md-button>
 
-      <md-input-container flex>
-        <label>Attributes:</label>
-        <md-chips ng-model="selection.attributes"
-                  md-autocomplete-snap
-                  md-transform-chip="transformChip($chip)"
-                  md-require-match="true">
-          <md-autocomplete
-              md-selected-item="selectedItem"
-              md-search-text="searchAttribute"
-              md-items="attr in attrSearch(searchAttribute)"
-              md-item-text="attr.name"
-              placeholder="Search for attributes">
-            <span md-highlight-text="searchAttribute">{{attr.name}}</span`>
-          </md-autocomplete>
-          <md-chip-template>
-            <span>
-              <strong>{{$chip.name}}</strong>
-            </span>
-          </md-chip-template>
-        </md-chips>
+
+      <md-input-container>
+        <label>Attributes groups</label>
+        <md-select ng-if="data.attributesGroups" ng-model="selection.attributesGroup">
+          <md-option ng-repeat="(name, attributes) in data.attributesGroups" ng-value="name">
+            <md-tooltip md-direction="bottom"><span ng-repeat="attr in attributes track by attr">{{attr}},</span></md-tooltip>
+            {{name}}
+          </md-option>
+        </md-select>
       </md-input-container>
 
-      <md-button class="md-fab md-primary" aria-label="Attributes filters" ng-disabled="true">
+      <md-button class="md-fab md-primary" aria-label="Attributes filters" ng-click="toggleAttributesFilter()">
         <md-icon md-svg-src="static/images/ic_filter_list_black_24px.svg"></md-icon>
       </md-button>
 
@@ -104,14 +94,46 @@
 
     <md-card ng-if="nodesFiltered">
       <md-card-content>
-
         <md-input-container>
-          <div ng-repeat="name in data.names | orderBy: name">
-          <md-checkbox ng-checked="nodeSelected(name)"
-                       ng-click="toggleNode(name)">
+          <div ng-repeat="node in data.nodes | orderBy: node">
+          <md-checkbox ng-checked="nodeSelected(node)"
+                       ng-click="toggleNode(node)">
             <span>{{name.split(".").slice(-1)[0]}}</span>
           </md-checkbox>
         </div>
+        </md-input-container>
+
+      </md-card-content>
+    </md-card>
+
+    <md-card ng-if="attributesFiltered">
+      <md-card-content>
+        <md-button class="md-primary" aria-label="Advanced filter" ng-click="toggleAdvancedSearch()">
+          <md-tooltip md-direction="bottom">multi word search (slower)</md-tooltip>
+          Advanced search
+        </md-button>
+
+        <md-input-container flex>
+          <label>Search for custom attributes:</label>
+          <md-chips ng-model="selection.attributes"
+                    md-autocomplete-snap
+                    md-transform-chip="transformChip($chip)"
+                    md-require-match="true">
+            <md-autocomplete
+                md-selected-item="selectedItem"
+                md-search-text="searchAttribute"
+                md-items="attr in attrSearch(searchAttribute)"
+                md-item-text="attr"
+                placeholder="Search for attributes">
+              <span md-highlight-text="searchAttribute">{{attr.split(".").slice(-1)[0]}}</span`>
+            </md-autocomplete>
+            <md-chip-template>
+              <span>
+                <md-tooltip md-direction="bottom">{{$chip}}</md-tooltip>
+                <strong>{{$chip.split(".").slice(-1)[0]}}</strong>
+              </span>
+            </md-chip-template>
+          </md-chips>
         </md-input-container>
 
       </md-card-content>
@@ -123,23 +145,23 @@
         <table md-table ng-model="selected" md-progress="promise">
           <thead md-head md-order="query.order">
             <tr md-row>
-              <th md-column><span>{{selection.node.name}}</span></th>
-              <th md-column ng-repeat="attr in selection.attributes"><span>{{attr.name}}</span></th>
+              <th md-column><span>{{selection.node_type.name}}</span></th>
+              <th md-column ng-repeat="attr in selection.attributes"><span>{{attr.split(".").slice(-1)[0]}}</span></th>
             </tr>
           </thead>
           <tbody md-body>
-            <tr md-row ng-repeat="node in data.lookups | filter:nodesFilter">
+            <tr md-row ng-repeat="(node, attributes) in filteredData.all">
               <td md-cell>
                 <md-button style="width:300px;">
-                  <md-tooltip md-direction="bottom">{{node.name}}</md-tooltip>{{node.name.split(".").slice(-1)[0]}}
+                  <md-tooltip md-direction="bottom">{{node}}</md-tooltip>{{node.split(".").slice(-1)[0]}}
                 </md-button>
               </td>
-              <td md-cell ng-repeat="attr in node.attributes">
-              <div ng-if="attr.length == 0"> Missing </div>
-              <div ng-if="attr.length == 1"> {{attr[0]}} </div>
-              <div ng-if="attr.length > 1">
+              <td md-cell ng-repeat="attr in selection.attributes">
+              <div ng-if="attributes[attr] === undefined"> Missing </div>
+              <div ng-if="!angular.isArray(attributes[attr])"> {{attributes[attr]}} </div>
+              <div ng-if="angular.isArray(attributes[attr])">
                 <select>
-                  <option ng-repeat="case in attr track by $index">{{case}}</option>
+                  <option ng-repeat="case in attributes[attr] track by $index">{{case}}</option>
                 </select>
               </div>
               </td>

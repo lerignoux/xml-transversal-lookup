@@ -93,26 +93,40 @@ class XmlToolbox(object):
             names.append(self.get_node_name(node))
         return names
 
-    def get_nodes_attributes(self, attributes, node_type=None):
+    def get_rec_attributes(self, node):
+        res = copy.deepcopy(node.attrib)
+        extended_attrs = set()
+        for child in node:
+            sub = self.get_rec_attributes(child)
+            log.error(sub)
+            for (sub_attr, sub_value) in sub.iteritems():
+                my_attr = "%s.%s" % (node.tag, sub_attr)
+                if my_attr not in res:
+                    res[my_attr] = sub_value
+                else:
+                    if my_attr in extended_attrs:
+                        res[my_attr] += sub_value
+                    else:
+                        extended_attrs.add(my_attr)
+                        res[my_attr] = [res[my_attr], sub_value]
+        return res
+
+    def get_nodes_attributes(self, node_type=None):
         """
         List all the attributes recursively on a node type
         default configured node type is used if not provided
         """
         if node_type is None:
             node_type = self.db_config['nodes']['type']
-        log.info("getting attributes %s for %s" % (attributes, node_type))
+        log.info("getting attributes for %s" % (node_type))
         nodes = self.root.findall(".//%s" % node_type)
-        result = {}
+        res = {'all': set()}
         for node in nodes:
-            node_res = copy.deepcopy(node.attrib)
-            node_res["name"] = self.get_node_name(node)
-            node_res["attributes"] = {attr: [] for attr in attributes}
-            for child in node.iter():
-                for attr in attributes:
-                    if child.get(attr):
-                        node_res["attributes"][attr] += [child.get(attr)]
-            result[self.get_node_id(node)] = node_res
-        return result
+            associations = self.get_rec_attributes(node)
+            res[self.get_node_name(node)] = associations
+            [res['all'].add(key) for key in associations.keys()]
+        res['all'] = list(res['all'])
+        return res
 
     def find_nodes_attr(self, attributes, node_type):
         """
@@ -143,6 +157,9 @@ class XmlToolbox(object):
             log.info("getting attrs")
 
         return [{"name": attr} for attr in attributes]
+
+    def get_nodes_attributes_groups(self, node):
+        return self.db_config['attributes']['groups']
 
     def get_default_node_type(self):
         return {'id': self.db_config['nodes']['type'], 'name': self.db_config['nodes']['type']}

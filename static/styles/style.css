@@ -1,9 +1,7 @@
 html {
-  background-color: #ddd;
 }
 
 body {
-  background-color: #ddd;
   color: #dddddd;
   max-width: 80%;
   margin-left: 10%;
@@ -12,6 +10,10 @@ body {
 md-toolbar.title {
   display: flex;
   flex-direction: row;
+}
+
+table.md-table th.md-column, table.md-table td.md-cell {
+  color: #fff;
 }
 
 .title-icon {
@@ -27,10 +29,6 @@ md-toolbar.title {
 .menu {
   display: flex;
   flex-direction: row;
-}
-
-md-content {
-  background-color: #ddd;
 }
 
 canvas {

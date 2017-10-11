@@ -68,13 +68,6 @@ def post_database():
     return json.dumps({"code": 200})
 
 
-@app.route("/lookups", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
-def lookup():
-    node = request.args.get('node')
-    attributes = request.args.getlist('attributes')
-    return json.dumps(toolbox.find_nodes_attr(attributes, node))
-
-
 @app.route("/nodes", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
 def nodes():
     result = {
@@ -96,10 +89,16 @@ def nodes_groups():
     return json.dumps(toolbox.get_nodes_groups(node_type))
 
 
-@app.route("/attributes", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
+@app.route("/nodes/attributes", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
 def attributes():
     node = request.args.get('node')
-    return json.dumps(list(toolbox.get_all_attributes(node)))
+    return json.dumps(toolbox.get_nodes_attributes(node))
+
+
+@app.route("/nodes/attributes/groups", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
+def attributes_groups():
+    node = request.args.get('node')
+    return json.dumps(toolbox.get_nodes_attributes_groups(node))
 
 
 if __name__ == "__main__":
