@@ -1,5 +1,6 @@
 
 import argparse
+from datetime import datetime
 import json
 import logging
 # from http://flask.pocoo.org/ tutorial
@@ -17,8 +18,6 @@ parser.add_argument('--debug', '-d', dest='debug',
 
 app = Flask(__name__)
 app.secret_key = "test"
-
-toolbox = XmlToolbox()
 
 
 @app.before_first_request
@@ -42,16 +41,13 @@ def index():
 @app.route('/login', methods=['POST'])
 def login():
     uid = str(uuid.uuid4())
+    session[uid] = datetime.now()
     return json.dumps({"uid": str(uid)})
-
-
-@app.route('/config', methods=['POST'])
-def reload_config():
-    app.toolbox.reload_config()
 
 
 @app.route('/databases', methods=['GET'])
 def get_databases():
+    toolbox = XmlToolbox()
     result = {
         "default": toolbox.get_default_database(),
         "all": toolbox.list_databases()
@@ -59,17 +55,9 @@ def get_databases():
     return json.dumps(result)
 
 
-@app.route('/databases', methods=['POST'])
-def post_database():
-    # data = json.loads(request.data.decode())
-    data = json.loads(request.data)
-    # db = data["database"]
-    toolbox.load_database(data['database'])
-    return json.dumps({"code": 200})
-
-
 @app.route("/nodes", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
 def nodes():
+    toolbox = XmlToolbox(db=request.args.get('database'))
     result = {
         "default": toolbox.get_default_node_type(),
         "all": toolbox.get_all_nodes_types()
@@ -79,24 +67,28 @@ def nodes():
 
 @app.route("/nodes/names", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
 def nodes_names():
+    toolbox = XmlToolbox(db=request.args.get('database'))
     node_type = request.args.get('node')
     return json.dumps(toolbox.get_nodes_names(node_type))
 
 
 @app.route("/nodes/groups", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
 def nodes_groups():
+    toolbox = XmlToolbox(db=request.args.get('database'))
     node_type = request.args.get('node')
     return json.dumps(toolbox.get_nodes_groups(node_type))
 
 
 @app.route("/nodes/attributes", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
 def attributes():
+    toolbox = XmlToolbox(db=request.args.get('database'))
     node = request.args.get('node')
     return json.dumps(toolbox.get_nodes_attributes(node))
 
 
 @app.route("/nodes/attributes/groups", methods=['GET'])  # take note of this decorator syntax, it's a common pattern
 def attributes_groups():
+    toolbox = XmlToolbox(db=request.args.get('database'))
     node = request.args.get('node')
     return json.dumps(toolbox.get_nodes_attributes_groups(node))
 

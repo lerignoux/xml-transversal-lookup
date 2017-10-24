@@ -58,18 +58,11 @@
         });
 
     $scope.selectDb = function() {
-      $http.post('/databases', {uid: $scope.data.uid, database: $scope.selection.database}).
-        success(function(results) {
-          $log.log("Database selected");
-          $scope.getNodeTypes();
-        }).
-        error(function(error) {
-          $log.log(error);
-        });
+      $scope.getNodeTypes();
     };
 
     $scope.getNodeTypes = function() {
-      $http.get('/nodes', {params: {uid: $scope.data.uid}}).
+      $http.get('/nodes', {params: {uid: $scope.data.uid, database: $scope.selection.database}}).
         success(function(results) {
           $log.log("Nodes fetched");
           $scope.data.node_types = results.all;
@@ -82,7 +75,7 @@
     };
 
     $scope.getNodes = function() {
-      $http.get('/nodes/names', {params: {uid: $scope.data.uid}}).
+      $http.get('/nodes/names', {params: {uid: $scope.data.uid, database: $scope.selection.database}}).
         success(function(results) {
           $log.log("Nodes fetched");
           $scope.data.nodes = results;
@@ -115,7 +108,7 @@
     }
 
     $scope.getNodesGroups = function() {
-      $http.get('/nodes/groups', {params: {uid: $scope.data.uid}}).
+      $http.get('/nodes/groups', {params: {uid: $scope.data.uid, database: $scope.selection.database}}).
         success(function(results) {
           $log.log("Nodes groups fetched");
           $scope.data.nodesGroups = results;
@@ -135,7 +128,7 @@
     };
 
     $scope.getAttributes = function() {
-      $http.get('/nodes/attributes', {params: {uid: $scope.data.uid, node: $scope.selection.node_type.id}}).
+      $http.get('/nodes/attributes', {params: {uid: $scope.data.uid, database: $scope.selection.database, node: $scope.selection.node_type.id}}).
         success(function(results) {
           $log.log("Attributes fetched");
           $scope.data.attributes = results;
@@ -169,7 +162,7 @@
     }
 
     $scope.getAttributesGroups = function() {
-      $http.get('/nodes/attributes/groups', {params: {uid: $scope.data.uid}}).
+      $http.get('/nodes/attributes/groups', {params: {uid: $scope.data.uid, database: $scope.selection.database}}).
         success(function(results) {
           $log.log("Attributes groups fetched");
           $scope.data.attributesGroups = results;

@@ -6,16 +6,19 @@ import xml.etree.ElementTree as ET
 
 log = logging.getLogger("xml_transversal_lookup")
 
+DATABASES = {}
+
 
 class XmlToolbox(object):
     """
     Feature search of properties within an xml object
     """
 
-    def __init__(self, config='config.json'):
+    def __init__(self, config='config.json', db=None):
         self.root = None
         self.load_config(config)
-        self.load_database(self.config['default_db'])
+        db = db or self.get_default_database()
+        self.load_database(db)
 
     def load_config(self, config):
         with open('config.json', 'r') as f:
@@ -28,9 +31,12 @@ class XmlToolbox(object):
         return [name for name in self.config.get('databases', {}).keys()]
 
     def load_database(self, db_name):
-        filename = self.config['databases'][db_name]["filename"]
         self.db_config = self.config['databases'][db_name]
-        self.tree = ET.parse(filename)
+        if db_name not in DATABASES:
+            log.info("Database %s not parsed, reading file...")
+            filename = self.config['databases'][db_name]["filename"]
+            DATABASES[db_name] = ET.parse(filename)
+        self.tree = DATABASES[db_name]
         self.root = self.tree.getroot()
         log.info("root set: %s" % self.root)
 
