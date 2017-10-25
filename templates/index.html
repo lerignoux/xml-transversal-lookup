@@ -98,7 +98,7 @@
           <div ng-repeat="node in data.nodes | orderBy: node">
           <md-checkbox ng-checked="nodeSelected(node)"
                        ng-click="toggleNode(node)">
-            <span>{{name.split(".").slice(-1)[0]}}</span>
+            <span>{{node.split(".").slice(-1)[0]}}</span>
           </md-checkbox>
         </div>
         </md-input-container>
