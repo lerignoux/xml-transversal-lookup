@@ -6,6 +6,8 @@
 
   <!-- Data Table style sheet -->
   <link href="static/md-data-table.min.css" rel="stylesheet" type="text/css"/>
+  <link rel="shortcut icon" href="static/images/favicon.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="static/images/favicon.png" type="image/x-icon" />
 
   <!-- Angular Material Dependencies -->
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.js"></script>
@@ -108,33 +110,33 @@
 
     <md-card ng-if="attributesFiltered">
       <md-card-content>
-        <md-button class="md-primary" aria-label="Advanced filter" ng-click="toggleAdvancedSearch()">
-          <md-tooltip md-direction="bottom">multi word search (slower)</md-tooltip>
-          Advanced search
-        </md-button>
-
-        <md-input-container flex>
-          <label>Search for custom attributes:</label>
-          <md-chips ng-model="selection.attributes"
-                    md-autocomplete-snap
-                    md-transform-chip="transformChip($chip)"
-                    md-require-match="true">
-            <md-autocomplete
-                md-selected-item="selectedItem"
-                md-search-text="searchAttribute"
-                md-items="attr in attrSearch(searchAttribute)"
-                md-item-text="attr"
-                placeholder="Search for attributes">
-              <span md-highlight-text="searchAttribute">{{attr.split(".").slice(-1)[0]}}</span`>
-            </md-autocomplete>
-            <md-chip-template>
-              <span>
-                <md-tooltip md-direction="bottom">{{$chip}}</md-tooltip>
-                <strong>{{$chip.split(".").slice(-1)[0]}}</strong>
-              </span>
-            </md-chip-template>
-          </md-chips>
-        </md-input-container>
+          <md-button class="md-primary" aria-label="Advanced filter" ng-click="toggleAdvancedSearch()">
+            <md-tooltip md-direction="bottom">multi word search (slower)</md-tooltip>
+            Advanced search
+          </md-button>
+          <md-input-container class="long">
+            <label>Search for custom attributes:</label>
+            <md-chips ng-model="selection.attributes"
+                      md-autocomplete-snap="width"
+                      md-transform-chip="transformChip($chip)"
+                      md-require-match="true">
+              <md-autocomplete
+                  md-selected-item="selectedItem"
+                  md-search-text="searchAttribute"
+                  md-items="attr in attrSearch(searchAttribute, selection.attributes)"
+                  md-item-text="attr"
+                  placeholder="Search for attributes"
+                  md-no-cache="clearCache()">
+                <div md-highlight-text="searchAttribute">{{attr.split(".").slice(-1)[0]}}</div>
+              </md-autocomplete>
+              <md-chip-template>
+                <span>
+                  <md-tooltip md-direction="bottom">{{$chip}}</md-tooltip>
+                  <strong>{{$chip.split(".").slice(-1)[0]}}</strong>
+                </span>
+              </md-chip-template>
+            </md-chips>
+          </md-input-container>
 
       </md-card-content>
     </md-card>

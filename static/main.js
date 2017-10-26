@@ -37,6 +37,7 @@
         "values": []
       };
 
+      $scope.selectionChanged = false;
       $scope.advancedSearch = false;
 
       $http.post('/login').
@@ -136,6 +137,7 @@
 
           $scope.$watch('selection.attributes', function(newValue, oldValue) {
             $log.log("Attribute selected: " + newValue);
+            $scope.selectionChanged = true;
             $scope.refreshContent();
           }, true);
 
@@ -285,7 +287,6 @@
     };
 
     $scope.attributesFilter = function(entry) {
-      $log.log(entry);
       // entry = {"attribute" : "test", "value": }
       if ($scope.selection.attributes.length == 0) {
         return false;
@@ -303,9 +304,16 @@
     /**
      * Search for entries.
      */
-    $scope.attrSearch = function (query) {
+    $scope.attrSearch = function (query, selected) {
+      if ($scope.data.attributes.all === undefined) {
+        return [];
+      }
       var results = query ? $scope.data.attributes.all.filter($scope.createFilterFor(query)) : [];
-      return results;
+
+      return results.filter(function (attr) {
+        return selected.indexOf(attr) == -1;
+      });
+
     };
 
     /**
@@ -329,6 +337,14 @@
         };
       }
 
+    };
+
+    $scope.clearCache = function () {
+        if ($scope.selectionChanged == true) {
+          $scope.selectionChanged = false;
+          return true;
+        }
+        return false;
     };
 
     $scope.groupFilter = function (item) {

@@ -31,6 +31,14 @@ table.md-table th.md-column, table.md-table td.md-cell {
   flex-direction: row;
 }
 
+md-input-container.long {
+  min-width: 500px;
+}
+
+.filter  md-chips {
+  min-width: 800px;
+}
+
 canvas {
   padding-top: 10px;
   padding-bottom: 10px;
