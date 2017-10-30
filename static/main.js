@@ -199,6 +199,26 @@
       //$scope.refreshGraph();
     };
 
+    $scope.addAttributesGroup = function(groupName) {
+      let group = {};
+      group[groupName] = $scope.selection.attributes
+      $http.post('/nodes/attributes/groups', {'uid': $scope.data.uid, 'database': $scope.selection.database, 'group': group}).
+        success(function(results) {
+          $log.log("Attributes groups added");
+        }).
+        error(function(error) {
+          $log.log(error);
+        });
+    };
+
+    $scope.filterNodes = function() {
+      if ($scope.selection.nodes === null) {return;}
+      $log.log("Filtering nodes.")
+      $scope.data.filteredNodes = $scope.data.nodes.filter($scope.nodesFilter);
+
+      //$scope.refreshGraph();
+    };
+
     $scope.refreshContent = function() {
       if ($scope.selection.nodes.length == 0) {
         $log.log("No nodes selected");

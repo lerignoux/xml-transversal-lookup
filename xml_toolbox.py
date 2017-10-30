@@ -21,7 +21,7 @@ class XmlToolbox(object):
         self.load_database(db)
 
     def load_config(self, config):
-        with open('config.json', 'r') as f:
+        with open(config, 'r') as f:
             self.config = json.load(f)
 
     def get_default_database(self):
@@ -93,9 +93,7 @@ class XmlToolbox(object):
         log.info("getting all nodes names")
         names = []
         nodes = self.root.findall(".//%s" % node_type)
-        log.info(nodes)
         for node in nodes:
-            log.info(node)
             names.append(self.get_node_name(node))
         return names
 
@@ -104,7 +102,6 @@ class XmlToolbox(object):
         extended_attrs = set()
         for child in node:
             sub = self.get_rec_attributes(child)
-            log.error(sub)
             for (sub_attr, sub_value) in sub.iteritems():
                 my_attr = "%s.%s" % (node.tag, sub_attr)
                 if my_attr not in res:
@@ -180,3 +177,11 @@ class XmlToolbox(object):
 
     def get_nodes_groups(self, node_type):
         return self.db_config.get("nodes", {}).get("groups", {})
+
+    def add_attributes_group(self, db_name, group, config='config_test.json'):
+        with open(config, 'r+') as f:
+            config = json.load(f)
+            config['databases'][db_name]["attributes"]["groups"].update(group)
+            f.seek(0)
+            f.write(json.dumps(config, sort_keys=True, indent=4))
+            f.truncate()

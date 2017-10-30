@@ -93,6 +93,15 @@ def attributes_groups():
     return json.dumps(toolbox.get_nodes_attributes_groups(node))
 
 
+@app.route("/nodes/attributes/groups", methods=['POST'])  # take note of this decorator syntax, it's a common pattern
+def add_attributes_group():
+    db = request.json['database']
+    toolbox = XmlToolbox(db=db)
+    group = request.json['group']
+    return json.dumps(toolbox.add_attributes_group(db, group))
+
+
+
 if __name__ == "__main__":
     args = parser.parse_args()
 
