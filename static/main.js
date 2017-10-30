@@ -117,6 +117,14 @@
 
           $scope.$watch('selection.nodesGroup', function(newValue, oldValue) {
             $log.log("New node group selected: " + newValue);
+            if (newValue == "All") {
+              $scope.selection.nodes = $scope.data.nodes;
+              return;
+            }
+            if (newValue == "None") {
+              $scope.selection.nodes = [];
+              return;
+            }
             if ($scope.data.nodesGroups[newValue] !== undefined) {
               $scope.selection.nodes = $scope.data.nodesGroups[newValue];
             }
@@ -268,10 +276,16 @@
 
     $scope.toggleNodesFilter = function() {
       $scope.nodesFiltered = !$scope.nodesFiltered;
+      if ($scope.nodesFiltered == true) {
+        $scope.attributesFiltered = false;
+      }
     };
 
     $scope.toggleAttributesFilter = function() {
       $scope.attributesFiltered = !$scope.attributesFiltered;
+      if ($scope.attributesFiltered == true) {
+        $scope.nodesFiltered = false;
+      }
     };
 
     $scope.toggleAdvancedSearch = function() {

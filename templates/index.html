@@ -66,6 +66,8 @@
       <md-input-container>
         <label>Nodes groups</label>
         <md-select ng-if="data.nodesGroups" ng-model="selection.nodesGroup">
+          <md-option ng-value="'All'">All</md-option>
+          <md-option ng-value="'None'">None</md-option>
           <md-option ng-repeat="(name, values) in data.nodesGroups" ng-value="name">
             {{name}}
           </md-option>
@@ -96,15 +98,14 @@
 
     <md-card ng-if="nodesFiltered">
       <md-card-content>
-        <md-input-container>
-          <div ng-repeat="node in data.nodes | orderBy: node">
-          <md-checkbox ng-checked="nodeSelected(node)"
-                       ng-click="toggleNode(node)">
-            <span>{{node.split(".").slice(-1)[0]}}</span>
-          </md-checkbox>
-        </div>
+        <md-input-container layout="row" layout-wrap flex>
+          <div flex="50" ng-repeat="node in data.nodes | orderBy: node" >
+            <md-checkbox ng-checked="nodeSelected(node)"
+                         ng-click="toggleNode(node)">
+              <span>{{node.split(".").slice(-1)[0]}}</span>
+            </md-checkbox>
+          </div>
         </md-input-container>
-
       </md-card-content>
     </md-card>
 
